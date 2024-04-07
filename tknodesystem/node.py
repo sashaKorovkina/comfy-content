@@ -63,7 +63,7 @@ class Node:
                                               radius=self.corner_radius, outline=self.node_outline_color, fill=self.node_color,
                                               width=self.node_outline_thickness)
         
-        self.IDtext = self.canvas.create_text(self.center, fill=self.text_color, justify=self.justify, font=self.font, text=self.text)
+        self.IDtext = self.canvas.create_text(self.center, fill=self.text_color, justify=self.justify, font=self.font, text=self.text, width=self.width)
         self.allIDs = [self.ID, self.IDtext]
         self.auxlist = [self.ID, self.IDtext]
 

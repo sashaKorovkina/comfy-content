@@ -9,7 +9,7 @@ from tkinter.font import Font
 class NodeValue(Node):
     def __init__(self, canvas, width=1000, height=50, value=0, border_color='white', text=None, corner_radius=25,
                  border_width=0, fg_color='#37373D', text_color='white', font=("",10), socket_radius=8, socket_hover=True,
-                 socket_color="green", socket_hover_color="grey50", highlightcolor='#52d66c', hover=True, justify="center",
+                 socket_color="#FF007F", socket_hover_color="grey50", highlightcolor='#FF007F', hover=True, justify="center",
                  click_command=None, side="right", x=0, y=0, num=None, fixed=False):
 
         self.text = text
@@ -39,7 +39,12 @@ class NodeValue(Node):
             border_color = fg_color
 
         # Dynamic width update
-        width = self.font.measure(self.value) + 100
+        #width = self.font.measure(self.value) + 100
+        value = self.format_value_to_lines()
+        print('the value is: ' + value)
+        text_height, text_width = self.calculate_text_dimensions(self.value)
+        height = text_height + 20  # Adding padding to height
+        width = text_width + 20  # Adding padding to width
 
         # Dynamic text update
 
@@ -84,6 +89,32 @@ class NodeValue(Node):
         else:
             raise ValueError("Font must be a tuple or a Font object")
 
+    def format_value_to_lines(self):
+        words = self.value.split()  # Split the string into a list of words
+        # Create a list where each element is a string containing up to 7 words
+        lines = [' '.join(words[i:i + 7]) for i in range(0, len(words), 7)]
+        # Join the lines with newline characters to create the formatted string
+        formatted_value = '\n'.join(lines)
+        return formatted_value
+
+    def calculate_text_dimensions(self, text):
+        words = text.split()
+        max_words_per_line = 7
+        lines = [' '.join(words[i:i + max_words_per_line]) for i in range(0, len(words), max_words_per_line)]
+
+        # Calculate total height
+        line_height = self.font.metrics("linespace")
+        total_height = len(lines) * line_height
+
+        # Calculate the width as the width of the longest line
+        max_line_width = 0
+        for line in lines:
+            line_width = self.font.measure(line)
+            if line_width > max_line_width:
+                max_line_width = line_width
+
+        print("Height:", total_height, "Width:", max_line_width)
+        return total_height, max_line_width
 
     def get(self):
         """ get the current value of node """
