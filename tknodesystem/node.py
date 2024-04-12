@@ -23,38 +23,6 @@ class Node:
         self.create()
         self.canvas.node_list.add(self)
 
-    class Node:
-        # Existing initialization and methods...
-        def wrap_text(self, text, max_width):
-            """
-            Wrap text to fit within the specified width.
-            This method can be overridden or extended by child classes as needed.
-            """
-            wrapped_text = []
-            words = text.split()
-            current_line = words.pop(0)
-
-            for word in words:
-                test_line = f"{current_line} {word}"
-                # Measure the line width here; you might need a way to measure text width in pixels.
-                # This is a placeholder for actual width measurement logic.
-                line_width = self.measure_text_width(test_line)
-                if line_width <= max_width:
-                    current_line = test_line
-                else:
-                    wrapped_text.append(current_line)
-                    current_line = word
-            wrapped_text.append(current_line)  # Add the last line
-
-            return "\n".join(wrapped_text)
-
-        def measure_text_width(self, text):
-            """
-            Measure the width of the given text.
-            Implement the actual text width measurement logic here, which might depend on the font size and type.
-            """
-            # Placeholder for text width measurement logic
-            return len(text) * 6  # Example: Estimate width based on character count
     def create(self):
         """ create round rectangular frame with text """
         
