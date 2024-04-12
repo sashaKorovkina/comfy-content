@@ -18,7 +18,7 @@ button_1.grid(pady=10, padx=10, sticky="se")
 button_2 = customtkinter.CTkButton(canvas, text="load", width=50, command=lambda: canvas.load("canvas.json"))
 button_2.grid(pady=10, padx=10, sticky="se")
 
-api_key = "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"
+api_key = input('Please input the openai key: ')
 client = OpenAI(api_key=api_key)
 
 class MultiLineInputDialog(simpledialog.Dialog):
@@ -49,9 +49,9 @@ def getConcept(prompt):
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an experience data engineer, with 20 years of experience."},
+             "content": "You are a data developer at a company called CMI2I. This is a company working in corporate governance"},
             {"role": "user",
-             "content": f"Come up with 1 real-world concept name related to {prompt}, write it in a single line"}
+             "content": f"Come up with 1 real-world concept name related to {prompt}, write it in a single line. This concept MUST be a name of a term related to data science and must be widely used in the industry"}
         ]
     )
     concept_name = completion.choices[0].message.content
@@ -63,7 +63,7 @@ def writeArticle(prompt):
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an experience data engineer, with 20 years of experience."},
+             "content": "You are a data developer at a company called CMI2I. This is a company working in corporate governance."},
             {"role": "user",
              "content": f"Write a 1 short paragraph contribution to a LinkedIn collaborative article basing it off the prompt: {prompt}"}
         ]
