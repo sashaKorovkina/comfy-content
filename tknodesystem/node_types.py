@@ -41,7 +41,6 @@ class NodeValue(Node):
         # Dynamic width update
         #width = self.font.measure(self.value) + 100
         value = self.format_value_to_lines()
-        print('the value is: ' + value)
         text_height, text_width = self.calculate_text_dimensions(self.value)
         height = text_height + 20  # Adding padding to height
         width = text_width + 20  # Adding padding to width
@@ -67,7 +66,7 @@ class NodeValue(Node):
         self.bind_all_to_movement()
         self.canvas.tag_bind(self.output_.ID, '<Button-1>', self.connect_output)
         if not fixed:
-            self.canvas.bind_all("<Delete>", lambda e: self.destroy() if self.signal else None, add="+")
+            self.canvas.bind_all("<BackSpace>", lambda e: self.destroy() if self.signal else None, add="+")
         self.socket_nums = self.output_.socket_num
         
         for j in range(self.canvas.gain_in):
@@ -731,9 +730,9 @@ class NodeOperation(Node):
 
 
 class NodeCompile(Node):
-    def __init__(self, canvas, width=100, height=50, border_color='white', text="Compile", socket_radius=8, corner_radius=25, x=0, y=0, justify="center",
-                 border_width=0, fg_color='#37373D',text_color='white', font=("",10), highlightcolor='#52d66c', hover=True, socket_hover=True, fixed=False,
-                 socket_color="green", socket_hover_color="grey50", show_value=True, command=None, click_command=None, side="left", num=None,
+    def __init__(self, canvas, width=200, height=500, border_color='white', text="Compile", socket_radius=8, corner_radius=25, x=0, y=0, justify="center",
+                 border_width=0, fg_color='#37373D',text_color='white', font=("",10), highlightcolor='#00BFFF', hover=True, socket_hover=True, fixed=False,
+                 socket_color="#00BFFF", socket_hover_color="grey50", show_value=True, command=None, click_command=None, side="left", num=None,
                  multiple_connection=False, pass_node_id=False):
         self.width = width
         self.height = height
@@ -753,6 +752,7 @@ class NodeCompile(Node):
             if command!="<lambda>":
                 if type(command) is str:
                     command = getattr(__main__, command)
+                    print('Executing the command...')
                 self.args.update({"command": command.__name__})
             else:
                 command = None
@@ -797,6 +797,7 @@ class NodeCompile(Node):
         self.output_ = NodeSocket(canvas, radius=socket_radius, center=(width+(width/2),height),
                                   fg_color=socket_color, hover_color=socket_hover_color, border_width=border_width,
                                   border_color=border_color, hover=socket_hover, socket_num=num[1] if num else None)
+
         self.socket_nums = [self.input_1.socket_num, self.output_.socket_num]
         self.allIDs = self.allIDs + [self.output_.ID, self.input_1.ID]
         self.fixed = True
@@ -804,7 +805,7 @@ class NodeCompile(Node):
         self.canvas.tag_bind(self.input_1.ID, '<Button-1>', self.connect_input)
 
         if not fixed:
-            self.canvas.bind_all("<Delete>", lambda e: self.destroy() if self.signal else None, add="+")
+            self.canvas.bind_all("<BackSpace>", lambda e: self.destroy() if self.signal else None, add="+")
 
         self.output_.hide()
 
@@ -820,6 +821,33 @@ class NodeCompile(Node):
             super().move(x,y)
 
         self.canvas.obj_list.add(self)
+
+    def format_value_to_lines(self):
+        words = self.value.split()  # Split the string into a list of words
+        # Create a list where each element is a string containing up to 7 words
+        lines = [' '.join(words[i:i + 7]) for i in range(0, len(words), 7)]
+        # Join the lines with newline characters to create the formatted string
+        formatted_value = '\n'.join(lines)
+        return formatted_value
+
+    def calculate_text_dimensions(self, text):
+        words = text.split()
+        max_words_per_line = 7
+        lines = [' '.join(words[i:i + max_words_per_line]) for i in range(0, len(words), max_words_per_line)]
+
+        # Calculate total height
+        line_height = self.font.metrics("linespace")
+        total_height = len(lines) * line_height
+
+        # Calculate the width as the width of the longest line
+        max_line_width = 0
+        for line in lines:
+            line_width = self.font.measure(line)
+            if line_width > max_line_width:
+                max_line_width = line_width
+
+        print("Height:", total_height, "Width:", max_line_width)
+        return total_height, max_line_width
 
     def add_copy_button(self):
         button_x = self.width - 100
@@ -858,11 +886,13 @@ class NodeCompile(Node):
         
     def connect_input(self, event):
         """ connect input sockets """
-
+        print("Attempting to connect input...")
         if not self.multiple:
+            print("The input is NOT a multiple...")
             try: self.canvas.delete(self.line1.ID)
             except: None
         else:
+            print("The input IS a multiple...")
             if self.canvas.outputcell in list(self.multilines.keys()):
                 if self.multilines[self.canvas.outputcell] is not None:
                     self.canvas.delete(self.multilines[self.canvas.outputcell])
@@ -906,7 +936,9 @@ class NodeCompile(Node):
                 self.multilines.update({self.canvas.outputcell:self.line1.ID})
             except:
                 self.multilines.update({self.canvas.outputcell:None})
-        
+        print(self.multilines)
+        print(self.canvas.line_list)
+
     def get(self):
         """ get the current value of node """
         return self.output_.value
@@ -919,6 +951,7 @@ class NodeCompile(Node):
         if self.ID not in self.canvas.find_all():
             return
         if self.multiple:
+            print('I am in self multiple')
             output = []
             for i in self.connected_inputs:
                 if i.output_.value is not None:
@@ -929,10 +962,11 @@ class NodeCompile(Node):
                         output.append(i.output_.value)
         else:
             output = self.cellinput1.output_.value if not self.fixed else None
+            print(output)
 
         self.output_.value = output
 
-        if self.previous_value!=self.output_.value:
+        if self.previous_value != self.output_.value:
             if self.show_value:
                 self.canvas.itemconfigure(self.IDtext, text=str(self.output_.value))
 
@@ -943,8 +977,35 @@ class NodeCompile(Node):
                     else:
                         self.command(self.output_.value)
         self.previous_value = self.output_.value
+        # Define the new width and calculate the bounding box of the polygon
+        new_width = 300
+        coords = self.canvas.coords(self.ID)
+        x_coords = coords[0::2]  # Extract x-coordinates
+        y_coords = coords[1::2]  # Extract y-coordinates
+        min_x, max_x = min(x_coords), max(x_coords)
+        min_y, max_y = min(y_coords), max(y_coords)
+        center_x = (min_x + max_x) / 2
+        center_y = (min_y + max_y) / 2
+        new_x1 = center_x - new_width / 2
+        new_x2 = center_x + new_width / 2
 
-        self.canvas.after(50, self.update)
+        # Calculate new polygon coordinates for a rounded rectangle
+        new_coords = [
+            new_x1 + self.corner_radius, min_y, new_x1 + self.corner_radius, min_y,
+            new_x2 - self.corner_radius, min_y, new_x2 - self.corner_radius, min_y,
+            new_x2, min_y, new_x2, min_y + self.corner_radius,
+            new_x2, max_y - self.corner_radius, new_x2, max_y - self.corner_radius,
+            new_x2, max_y, new_x2 - self.corner_radius, max_y,
+            new_x2 - self.corner_radius, max_y, new_x1 + self.corner_radius, max_y,
+            new_x1 + self.corner_radius, max_y, new_x1, max_y,
+            new_x1, max_y - self.corner_radius, new_x1, min_y + self.corner_radius,
+            new_x1, min_y + self.corner_radius, new_x1, min_y
+        ]
+
+        # Update the polygon's coordinates
+        self.canvas.coords(self.ID, new_coords)
+        self.canvas.after(1000, self.update)
+        #self.canvas.itemconfigure(self.ID, width=500)
 
 
     def destroy(self):
@@ -969,6 +1030,8 @@ class NodeCompile(Node):
         if "text" in kwargs:
             self.text = kwargs.pop("text")
             super().configure(text=self.text)
+            print('I am the configured text')
+            print(self.text)
         if "fg_color" in kwargs:
             super().configure(fg_color=kwargs.pop("fg_color"))
         if "text_color" in kwargs:
